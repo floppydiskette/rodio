@@ -286,8 +286,15 @@ impl Sink {
     /// Sleeps the current thread until the sound ends.
     #[inline]
     pub fn sleep_until_end(&self) {
+        #[cfg(not(feature = "dont-stop-sinks"))]
         if let Some(sleep_until_end) = self.sleep_until_end.lock().unwrap().take() {
             let _ = sleep_until_end.recv();
+        }
+        #[cfg(feature = "dont-stop-sinks")]
+        {
+            if let Some(sleep_until_end) = self.sleep_until_end.lock().unwrap().take() {
+                let _ = sleep_until_end.try_recv();
+            }
         }
     }
 
